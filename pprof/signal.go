@@ -14,13 +14,9 @@ var (
 	previousLogLevel log.Level
 )
 
+// RegisterSignalHandlers registers signal handlers for debugging and
+// profiling.
 func RegisterSignalHandlers() {
-	// TODO (rupert): break out the actual functionality from the signal handling?
-	// Signal handlers for debugging and profiling:
-	// SIGQUIT: Dump a one-time heap and goroutine trace to stdout.
-	// SIGUSR1: Start a long-running CPU profile using pprof. Write the profile
-	// to this path: /var/tmp/profile_${PID}_${TIMESTAMP}.pprof where TIMESTAMP
-	// represents the epoch time when the profiling session began.
 	notifyChan := make(chan os.Signal, 1)
 	signal.Notify(notifyChan, syscall.SIGQUIT, syscall.SIGUSR1, syscall.SIGUSR2)
 	go func() {
