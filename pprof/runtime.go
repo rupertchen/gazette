@@ -27,6 +27,7 @@ var (
 // profile is written to /var/tmp/profile_${PID}_${TIMESTAMP}.pprof where
 // TIMESTAMP represents the epoch time when the profiling session began.
 func toggleProfiler() {
+	log.Info("Toggle profiler")
 	if profileWriter == nil {
 		var err error
 
@@ -37,13 +38,19 @@ func toggleProfiler() {
 		if err == nil {
 			profileWriter = bufio.NewWriter(profileFile)
 			pprof.StartCPUProfile(profileWriter)
+			log.Info("Start CPU profile")
 		} else {
 			log.WithField("err", err).Error("could not begin CPU profiling")
 		}
 	} else {
+		log.Info("Stop CPU profile")
 		pprof.StopCPUProfile()
 		profileFile.Close()
 		profileWriter = nil
 		profileFile = nil
 	}
+}
+
+func ToggleProfiler() {
+	toggleProfiler()
 }
