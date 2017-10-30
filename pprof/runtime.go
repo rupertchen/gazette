@@ -17,28 +17,33 @@ func dump(w io.Writer) {
 	pprof.Lookup("goroutine").WriteTo(w, 1)
 }
 
-// TODO is this really worth extracting? Does it work correctly writing to a file in this way? seems like no
+// Global state for profiling.
+var (
+	profileWriter io.Writer
+	profileFile   *os.File
+)
+
 // toggleProfiler starts and stops a long-running CPU profile using pprof. The
 // profile is written to /var/tmp/profile_${PID}_${TIMESTAMP}.pprof where
 // TIMESTAMP represents the epoch time when the profiling session began.
-func toggleProfiler(w io.Writer, f *os.File) {
-	if w == nil {
+func toggleProfiler() {
+	if profileWriter == nil {
 		var err error
 
 		filename := fmt.Sprintf("/var/tmp/profile_%d_%d.pprof",
 			os.Getpid(), time.Now().Unix())
 
-		f, err = os.Create(filename)
+		profileFile, err = os.Create(filename)
 		if err == nil {
-			w = bufio.NewWriter(f)
-			pprof.StartCPUProfile(w)
+			profileWriter = bufio.NewWriter(profileFile)
+			pprof.StartCPUProfile(profileWriter)
 		} else {
 			log.WithField("err", err).Error("could not begin CPU profiling")
 		}
 	} else {
 		pprof.StopCPUProfile()
-		f.Close()
-		w = nil
-		f = nil
+		profileFile.Close()
+		profileWriter = nil
+		profileFile = nil
 	}
 }

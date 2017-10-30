@@ -1,7 +1,6 @@
 package pprof
 
 import (
-	"io"
 	"os"
 	"os/signal"
 	"syscall"
@@ -20,15 +19,12 @@ func RegisterSignalHandlers() {
 	notifyChan := make(chan os.Signal, 1)
 	signal.Notify(notifyChan, syscall.SIGQUIT, syscall.SIGUSR1, syscall.SIGUSR2)
 	go func() {
-		var profileWriter io.Writer
-		var profileFile *os.File
-
 		for {
 			switch <-notifyChan {
 			case syscall.SIGQUIT:
 				dump(os.Stdout)
 			case syscall.SIGUSR1:
-				toggleProfiler(profileWriter, profileFile)
+				toggleProfiler()
 			case syscall.SIGUSR2:
 				toggleTrace()
 			}
