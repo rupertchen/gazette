@@ -50,6 +50,7 @@ var (
 	prefixList      prefixFlagSet
 	etcdEndpoint    = envflagfactory.NewEtcdServiceEndpoint()
 	gazetteEndpoint = envflagfactory.NewGazetteServiceEndpoint()
+	displayBytes    = flag.Bool("displayBytes", false, "Display size of lag in bytes (non-humanized).")
 
 	// Global service objects.
 	keysAPI       etcd.KeysAPI
@@ -160,6 +161,10 @@ func checkConsumers(consumerList []string) {
 func bytesForDisplay(lag int64) string {
 	if minimumDisplayLag > uint64(lag) {
 		lag = 0
+	}
+
+	if *displayBytes {
+		return strconv.FormatInt(lag, 10)
 	}
 
 	return humanize.Bytes(uint64(lag))
