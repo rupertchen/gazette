@@ -44,8 +44,8 @@ RUN curl -L -o /opt/rocksdb.tgz \
  && ldconfig
 
 
-# Stage 2: Create a build image with dependencies & source, which is built and tested.
-FROM base as build
+# Stage 2: Create a cacheable "vendor" image with pinned dependencies.
+FROM base as vendor
 
 ARG DEP_VERSION=v0.5.0
 
@@ -55,6 +55,10 @@ RUN curl -fsSL -o /usr/local/bin/dep \
 
 COPY Gopkg.toml Gopkg.lock /go/src/github.com/LiveRamp/gazette/
 RUN cd /go/src/github.com/LiveRamp/gazette/ && dep ensure -vendor-only
+
+
+# Stage 3: Create a build image by applying source, building, and testing.
+FROM vendor as build
 
 # Copy, install, and test library and main packages.
 COPY v2/pkg /go/src/github.com/LiveRamp/gazette/v2/pkg
@@ -84,7 +88,7 @@ RUN go build \
     github.com/LiveRamp/gazette/v2/examples/word-count/counter
 
 
-# Stage 3: Pluck gazette binaries onto base.
+# Stage 4: Pluck gazette binaries onto base.
 FROM base as gazette
 
 COPY --from=build \
@@ -94,7 +98,7 @@ COPY --from=build \
     /go/bin/
 
 
-# Stage 4: Pluck example binaries onto gazette.
+# Stage 5: Pluck example binaries onto gazette.
 FROM gazette as examples
 
 COPY --from=build \

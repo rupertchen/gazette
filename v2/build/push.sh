@@ -13,16 +13,14 @@ while getopts ":t:" opt; do
   esac
 done
 
-docker push liveramp/gazette:latest
-docker push liveramp/gazette-build:latest
-docker push liveramp/gazette-examples:latest
-
-if [[ "$TAG" != "latest" ]]; then
-  docker tag liveramp/gazette:latest          liveramp/gazette:${TAG}
-  docker tag liveramp/gazette-build:latest    liveramp/gazette-build:${TAG}
+if [[ "$TAG" = "latest" ]]; then
+  docker push liveramp/gazette-vendored:latest
+  docker push liveramp/gazette-examples:latest
+  docker push liveramp/gazette:latest
+else 
   docker tag liveramp/gazette-examples:latest liveramp/gazette-examples:${TAG}
+  docker tag liveramp/gazette:latest          liveramp/gazette:${TAG}
 
-  docker push liveramp/gazette:${TAG}
-  docker push liveramp/gazette-build:${TAG}
   docker push liveramp/gazette-examples:${TAG}
+  docker push liveramp/gazette:${TAG}
 fi

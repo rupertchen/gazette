@@ -4,23 +4,35 @@ jobs:
     docker:
       - image: docker:stable
     steps:
+      - setup_remote_docker
+      - run: apk add bash
+
+      - run:
+          name: Determine effective build tag.
+          command: |
+            # If the branch being built contains a slash `prefix/`, use that
+            # `prefix` as the tag for the cached continuous integration image.
+            CI_CACHE_TAG=${CIRCLE_BRANCH%/*}
+            if [[ $CI_CACHE_TAG == $CIRCLE_BRANCH ]]; then
+              CI_CACHE_TAG="latest"
+            fi
+
+            docker pull liveramp/gazette-ci-cache:${CI_CACHE_TAG}
+
+
+
+
+      # Determine the effective tag for this build.
+      # Prefer
+
       - checkout
 
-      - setup_remote_docker:
-          docker_layer_caching: true
+      # Pull down current vendor cache.
+      - run: ./v2/build/all.sh
 
       - run:
-          name: Build and test V1 Gazette
-          command: docker build . --file build/Dockerfile.gazette-build --tag gazette-build
-
-      - run:
-          name: Build the V1 binary image
-          command: docker build . --file build/cmd/Dockerfile.gazette
-
-      - run:
-          name: Build V1 stream-sum example
-          command: docker build . --file build/examples/Dockerfile.stream-sum
-
-      - run:
-          name: Build and test V2 Gazette
-          command: ./v2/build/all.sh
+          name: Push V2 Gazette.
+          command: |
+            export TAG=2.0.${CIRCLE_BUILD_NUM}
+            echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_LOGIN --password-stdin
+            ./v2/build/push.sh ${TAG}
