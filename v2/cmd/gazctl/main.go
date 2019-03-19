@@ -27,7 +27,8 @@ a loss of transactionality and should be used with caution.`
 var (
 	baseCfg = new(struct {
 		mbp.ZoneConfig
-		Log mbp.LogConfig `group:"Logging" namespace:"log" env-namespace:"LOG"`
+		Log         mbp.LogConfig `group:"Logging" namespace:"log" env-namespace:"LOG"`
+		DialTimeout int           `long:"dial-timeout" env:"DIAL_TIMEOUT" default:"10" description:"Timeout in seconds to dial to a gRPC server."`
 	})
 	journalsCfg = new(struct {
 		Broker mbp.ClientConfig `group:"Broker" namespace:"broker" env-namespace:"BROKER"`

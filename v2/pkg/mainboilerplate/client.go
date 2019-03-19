@@ -4,9 +4,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/LiveRamp/gazette/v2/pkg/keepalive"
+
 	"github.com/LiveRamp/gazette/v2/pkg/client"
 	"github.com/LiveRamp/gazette/v2/pkg/consumer"
-	"github.com/LiveRamp/gazette/v2/pkg/keepalive"
 	pb "github.com/LiveRamp/gazette/v2/pkg/protocol"
 	"google.golang.org/grpc"
 )
@@ -21,7 +22,9 @@ func (c *AddressConfig) Dial(ctx context.Context) *grpc.ClientConn {
 	var cc, err = grpc.DialContext(ctx, c.Address.URL().Host,
 		grpc.WithInsecure(),
 		grpc.WithDialer(keepalive.DialerFunc),
-		grpc.WithBalancerName(pb.DispatcherGRPCBalancerName))
+		grpc.WithBalancerName(pb.DispatcherGRPCBalancerName),
+		grpc.WithBlock(),
+	)
 	Must(err, "failed to dial remote service", "endpoint", c.Address)
 
 	return cc

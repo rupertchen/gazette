@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/LiveRamp/gazette/v2/pkg/client"
 	mbp "github.com/LiveRamp/gazette/v2/pkg/mainboilerplate"
@@ -137,12 +138,15 @@ func (cmd *cmdJournalsList) outputYAML(resp *pb.ListResponse) {
 func listJournals(s string) *pb.ListResponse {
 	var err error
 	var req pb.ListRequest
-	var ctx = context.Background()
 
 	req.Selector, err = pb.ParseLabelSelector(s)
 	mbp.Must(err, "failed to parse label selector", "selector", s)
 
-	resp, err := client.ListAllJournals(ctx, pb.NewJournalClient(journalsCfg.Broker.Dial(ctx)), req)
+	var dialCtx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var conn = journalsCfg.Broker.Dial(dialCtx)
+	resp, err := client.ListAllJournals(context.Background(), pb.NewJournalClient(conn), req)
 	mbp.Must(err, "failed to list journals")
 
 	return resp
