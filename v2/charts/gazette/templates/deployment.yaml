@@ -23,6 +23,14 @@ spec:
         app.kubernetes.io/name: {{ include "gazette.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+      strategy:
+        rollingUpdate:
+          {{- if .Values.maxUnavailable }}
+          maxUnavailable: {{ toYaml .Values.maxUnavailable | trim }}
+          {{- end}}
+          {{- if .Values.maxSurge }}
+          maxSurge: {{ toYaml .Values.maxSurge | trim }}
+          {{- end}}
       containers:
         - name: {{ .Chart.Name }}
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
